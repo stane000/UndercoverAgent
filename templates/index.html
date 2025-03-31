@@ -99,7 +99,7 @@
         {% if not joined %}
         <form action="/join" method="post">
             <input type="text" id="name" name="name" placeholder="Enter your name" required>
-            <button type="submit">Join Game</button>
+            <button id="joinGameButton" type="submit">Join Game</button>
         </form>
         {% endif %}
         
@@ -167,6 +167,18 @@
                 playerList.appendChild(li);
             });
         });
+
+        socket.on('game_reset', () => {
+        playerList.innerHTML = '';  // Clear the player list
+        playerRole.innerHTML = '';  // Clear the player's role
+        countdown.innerHTML = '';   // Clear the countdown display
+        
+        // Show the Join Game button and hide other buttons
+        if (joinGameButton) joinGameButton.style.display = 'inline-block'; // Show "Join Game" button
+        if (startGameButton) startGameButton.style.display = 'none';       // Hide "Start Game" button
+        if (nextRoundButton) nextRoundButton.style.display = 'none';       // Hide "Next Round" button
+        if (resetGameButton) resetGameButton.style.display = 'none';       // Hide "Reset Game" button
+    });
         
         if (startGameButton) {
             startGameButton.addEventListener('click', () => {
@@ -180,13 +192,9 @@
         });
         
         resetGameButton.addEventListener('click', () => {
-            fetch("/reset", { method: "POST" })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    }
+            socket.emit('reset');
                 });
-        });
+
     </script>
 </body>
 </html>
