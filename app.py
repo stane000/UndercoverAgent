@@ -15,7 +15,8 @@ game_data = {
         "School", "Casino", "Beach", "Restaurant", "Hospital",
         "Airport", "Park", "Mall", "Train Station", "Library",
         "Movie Theater", "Gym", "Office", "Zoo", "Hotel", "Current location",
-        "Jarun lake"
+        "Jarun lake", "Collage", "Funeral", "Dico club", "Lunopark", "Mars",
+        "Bundek", "Prison"
     ],
     "players": []
 }
@@ -42,6 +43,9 @@ def join():
 def start_game():
     if len(game_data['players']) < 2:
         return "Not enough players to start the game!", 400  # Error if fewer than 2 players
+    
+    # Scale locations 
+    locations =  random.sample(game_data["locations"], len(game_data["players"]) * 5)
 
     # Randomly select a location and a spy
     game_data['location'] = random.choice(game_data['locations'])
@@ -54,9 +58,11 @@ def start_game():
         else:
             roles[player] = f"You are not the spy! The location is: {game_data['location']}"
 
+
     # Broadcast personalized data to all players
-    socketio.emit('game_started', {'roles': roles})
+    socketio.emit('game_started', {"roles": roles, "locations": locations})
     return redirect(url_for('home'))
+
 
 @app.route('/reset', methods=['POST'])
 def reset_game():

@@ -80,7 +80,7 @@
     <div class="container">
         
         <h2>Possible Locations</h2>
-        <ul>
+        <ul id="locations_list">
             {% for location in locations %}
             <li>{{ location }}</li>
             {% endfor %}
@@ -138,14 +138,26 @@
         }
         
         socket.on('game_started', (data) => {
-            startCountdown(() => {
-                const roles = data.roles;
-                playerRole.innerHTML = roles[playerName] || "Game details not available.";
-                if (startGameButton) startGameButton.style.display = 'none';
-                nextRoundButton.style.display = 'inline-block';
-                resetGameButton.style.display = 'inline-block';
+        startCountdown(() => {
+            const roles = data.roles;
+            playerRole.innerHTML = roles[playerName] || "Game details not available.";
+
+            // Update the locations dynamically
+            let locationList = document.getElementById("locations_list");
+            locationList.innerHTML = "";  // Clear existing list
+
+            data.locations.forEach(function(location) {
+                let li = document.createElement("li");
+                li.textContent = location;
+                locationList.appendChild(li);
             });
+
+            // Hide the start button and show next round/reset buttons
+            if (startGameButton) startGameButton.style.display = 'none';
+            nextRoundButton.style.display = 'inline-block';
+            resetGameButton.style.display = 'inline-block';
         });
+    });
         
         socket.on('update_players', (players) => {
             playerList.innerHTML = '';
