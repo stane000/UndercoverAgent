@@ -15,7 +15,7 @@ game_data = {
         "School", "Casino", "Beach", "Restaurant", "Hospital",
         "Airport", "Park", "Mall", "Train Station", "Library",
         "Movie Theater", "Gym", "Office", "Zoo", "Hotel", "Current location",
-        "Jarun lake", "Collage", "Funeral", "Dico club", "Lunopark", "Mars",
+        "Jarun lake", "College", "Funeral", "Disco club", "Lunopark", "Mars",
         "Bundek", "Prison"
     ],
     "players": []
