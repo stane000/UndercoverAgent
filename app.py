@@ -31,8 +31,6 @@ def home():
     # For players not in a room, pass the list of active game rooms
     return render_template("index.html", rooms=game_rooms)
 
-
-# Route to host a new game room (GET presents a form; POST creates the room).
 @app.route('/host', methods=['GET', 'POST'])
 def host():
     if request.method == 'POST':
@@ -47,23 +45,28 @@ def host():
                     'location': None,
                     'locations': default_locations.copy(),
                     'roles': {},
-                    'round_started': False  # Indicates whether a round is currently in progress.
+                    'round_started': False
                 }
-            # Save room and player info in session
             session['room'] = room_name
             session['player_name'] = host_name
+            # Broadcast the updated room list to everyone.
+            socketio.emit('update_rooms', game_rooms)
             return redirect(url_for('home'))
     return render_template("host.html")
 
 @app.route('/delete_room', methods=['POST'])
 def delete_room():
     room = session.get('room')
-    # Verify the room exists and the current user is the host.
     if room and room in game_rooms:
         if session.get('player_name') == game_rooms[room]['host']:
-            # Delete the room and clear the room from the session.
+            # Notify all players in the room that it has been deleted.
+            socketio.emit('room_deleted', {'message': 'The room has been deleted by the host.'}, room=room)
+            # Remove the room from the game_rooms dictionary.
             del game_rooms[room]
+            # Clear session data for room membership.
             session.pop('room', None)
+            socketio.emit('update_rooms', game_rooms)
+            # (For the host, redirect immediately.)
             return redirect(url_for('home'))
         else:
             return "Unauthorized", 403
@@ -87,6 +90,24 @@ def join_room_route():
             session['player_name'] = player_name
             return redirect(url_for('home'))
     return render_template("join.html")
+
+@app.route('/leave_room', methods=['POST'])
+def leave_room():
+    room = session.get('room')
+    player = session.get('player_name')
+    if room and room in game_rooms:
+        if player in game_rooms[room]['players']:
+            game_rooms[room]['players'].remove(player)
+        if not game_rooms[room]['players']:
+            del game_rooms[room]
+        else:
+            socketio.emit('update_players', game_rooms[room]['players'], room=room)
+        # Broadcast updated room list—since a player left, it might change available rooms.
+        socketio.emit('update_rooms', game_rooms)
+    session.pop('room', None)
+    session.pop('player_name', None)
+    session.pop('waiting', None)
+    return redirect(url_for('home'))
 
 
 # SocketIO event: when a client connects, add them to their room.

@@ -2,37 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Join Game | Undercover Agent</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
   <style>
-    /* Example CSS styling similar to index.html */
     body {
       font-family: 'Orbitron', sans-serif;
       background-color: #121212;
       color: #00ffcc;
       text-align: center;
       margin: 0;
-      padding: 20px;
+      padding: 10px;
     }
     .container {
-      max-width: 600px;
+      max-width: 300px; /* Smaller container for compact layout */
       margin: auto;
       background: #222;
-      padding: 20px;
+      padding: 15px; /* Reduced padding for smaller look */
       border-radius: 10px;
-      box-shadow: 0 0 15px #00ffcc;
+      box-shadow: 0 0 10px #00ffcc;
     }
     input, button {
-      padding: 10px;
-      margin: 10px 0;
+      padding: 8px;
+      margin: 8px 0;
       border-radius: 5px;
       border: none;
+      width: 90%;
     }
     button {
       background: #00ffcc;
       color: #121212;
       cursor: pointer;
-      font-size: 1.1em;
+      font-size: 1em;
     }
     button:hover {
       background: #00cc99;
@@ -40,15 +41,14 @@
   </style>
 </head>
 <body>
-  <h1>Join a Game</h1>
+  <h2>Join Game</h2>
   <div class="container">
     <form action="/join_room" method="post">
       <input type="text" name="player" placeholder="Enter your name" required>
-      <!-- Pre-fill if the room query parameter is provided -->
-      <input type="text" name="room" placeholder="Enter room name" required value="{{ request.args.get('room', '') }}">
+      <!-- Pre-fill the room name if passed as a query parameter -->
+      <input type="text" name="room"  required value="{{ request.args.get('room', '') }}">
       <button type="submit">Join Game</button>
     </form>
-    <p>Or <a href="/host">host your own game</a></p>
   </div>
 </body>
 </html>

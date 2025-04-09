@@ -3,86 +3,124 @@
 <head>
   <meta charset="UTF-8">
   <title>Undercover Agent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
   <style>
-    /* Example CSS styling */
     body {
       font-family: 'Orbitron', sans-serif;
       background-color: #121212;
       color: #00ffcc;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
     }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
+    h1, h2, h3 {
+      color: #00ffcc;
+    }
+    .card {
+      background-color: #222;
+      border: none;
       box-shadow: 0 0 15px #00ffcc;
     }
-    input, button {
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: none;
+    .btn-custom {
+      border-radius: 0.25rem;
     }
-    button {
-      background: #00ffcc;
-      color: #121212;
-      cursor: pointer;
-      font-size: 1.1em;
+    /* Active Rooms list items: green text with a green border, black inside */
+    #activeRooms li {
+      color: #00ffcc;
+      border: 1px solid #00ffcc;
+      background-color: #000;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
     }
-    button:hover {
-      background: #00cc99;
+    /* Style for the join button within list items */
+    #activeRooms li a {
+      color: #00ffcc;
+      border-color: #00ffcc;
     }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      background: #333;
-      padding: 8px;
-      margin: 5px 0;
-      border-radius: 5px;
-    }
-    a {
-      text-decoration: none;
+    #activeRooms li a:hover {
+      color: #ffffff;
     }
   </style>
 </head>
 <body>
-  <h1>🔎 Undercover Agent 🔥</h1>
-  <div class="container">
-    <h2>Host a Game</h2>
-    <form action="/host" method="post">
-      <input type="text" name="host" placeholder="Enter your name" required>
-      <input type="text" name="room" placeholder="Enter room name" required>
-      <button type="submit">Host Game</button>
-    </form>
-    
-    <!-- <h2>Join an Existing Game</h2>
-    <form action="/join_room" method="post">
-      <input type="text" name="player" placeholder="Enter your name" required>
-      <input type="text" name="room" placeholder="Enter room name" required>
-      <button type="submit">Join Game</button>
-    </form>
-     -->
-    <h3>Active Game Rooms</h3>
-    <ul>
+  <div class="container py-3">
+    <h1 class="text-center mb-4">🔎 Undercover Agent</h1>
+    <!-- Host Game Card -->
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="card text-center">
+          <div class="card-body">
+            <h2 class="card-title">Host a Game</h2>
+            <form action="/host" method="post">
+              <div class="mb-3">
+                <input type="text" name="host" class="form-control" placeholder="Enter your name" required>
+              </div>
+              <div class="mb-3">
+                <input type="text" name="room" class="form-control" placeholder="Enter room name" required>
+              </div>
+              <button type="submit" class="btn btn-primary btn-custom w-100">Host Game</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Active Game Rooms List -->
+    <h3 class="text-center mt-4">Active Game Rooms</h3>
+    <ul class="list-group" id="activeRooms">
       {% for room_name, room_data in rooms.items() %}
-      <li>
-        Room: <strong>{{ room_name }}</strong> – Host: {{ room_data['host'] }} – Players: {{ room_data['players']|length }}
-        <!-- Add a Join button next to the room entry -->
-        <a href="/join_room?room={{ room_name }}">
-          <button type="button" style="margin-left:10px;">Join</button>
-        </a>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          Room: <strong>{{ room_name }}</strong> – Host: {{ room_data['host'] }} – Players: {{ room_data['players']|length }}
+        </div>
+        <a href="/join_room?room={{ room_name }}" class="btn btn-outline-info btn-sm">Join</a>
       </li>
       {% else %}
-      <li>No active game rooms available</li>
+      <li class="list-group-item">No active game rooms available</li>
       {% endfor %}
     </ul>
   </div>
+  
+  <!-- Socket.IO -->
+  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+
+    // Function to rebuild the active room list using the rooms object received from the server.
+    function updateRoomList(rooms) {
+      const activeRoomsList = document.getElementById('activeRooms');
+      activeRoomsList.innerHTML = ""; // Clear the current list
+
+      const roomKeys = Object.keys(rooms);
+      if (roomKeys.length > 0) {
+        roomKeys.forEach(roomName => {
+          const roomData = rooms[roomName];
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.innerHTML = `Room: <strong>${roomName}</strong> – Host: ${roomData.host} – Players: ${roomData.players.length}`;
+
+          // Create join link (GET link will redirect to your join page)
+          const joinLink = document.createElement('a');
+          joinLink.href = `/join_room?room=${roomName}`;
+          joinLink.className = 'btn btn-outline-info btn-sm';
+          joinLink.textContent = 'Join';
+          li.appendChild(joinLink);
+
+          activeRoomsList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = "No active game rooms available";
+        activeRoomsList.appendChild(li);
+      }
+    }
+    
+    // Listen for room updates from the server.
+    socket.on('update_rooms', (rooms) => {
+      updateRoomList(rooms);
+    });
+  </script>
+  <!-- Bootstrap JS bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
