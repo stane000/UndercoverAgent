@@ -45,7 +45,7 @@ def start_game():
         return "Not enough players to start the game!", 400  # Error if fewer than 2 players
     
     # Scale locations 
-    locations =  random.sample(game_data["locations"], len(game_data["players"]) * 5)
+    game_data['locations'] =  random.sample(game_data["locations"], len(game_data["players"]) * 5)
 
     # Randomly select a location and a spy
     game_data['location'] = random.choice(game_data['locations'])
@@ -60,7 +60,7 @@ def start_game():
 
 
     # Broadcast personalized data to all players
-    socketio.emit('game_started', {"roles": roles, "locations": locations})
+    socketio.emit('game_started', {"roles": roles, "locations": game_data['locations']})
     return redirect(url_for('home'))
 
 
