@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Host Game | Undercover Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+  <style>
+    /* (Include your basic styling, similar to index.html) */
+  </style>
+</head>
+<body>
+  <h1>Host a Game</h1>
+  <div class="container">
+    <form action="/host" method="post">
+      <input type="text" name="host" placeholder="Enter your name" required>
+      <input type="text" name="room" placeholder="Enter room name" required>
+      <button type="submit">Host Game</button>
+    </form>
+    <p>Or <a href="/join_room">join an existing game</a></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Undercover Agent | Room {{ room }}</title>
+  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+  <style>
+    /* (Your existing styles go here) */
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background-color: #121212;
+      color: #00ffcc;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00ffcc;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #333;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+    }
+    button {
+      background: #00ffcc;
+      color: #121212;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #00cc99;
+    }
+    .role-box {
+      margin-top: 20px;
+      font-size: 1.5em;
+      padding: 10px;
+      background: #333;
+      border-radius: 5px;
+      text-shadow: 0 0 5px #00ffcc;
+    }
+    .countdown {
+      font-size: 2em;
+      margin-top: 20px;
+      color: #ff3333;
+      text-shadow: 0 0 10px #ff3333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Room: {{ room }}</h1>
+  <div class="container">
+    <h2>Players</h2>
+    <ul id="playerList">
+      {% for player in players %}
+      <li>{{ player }}</li>
+      {% endfor %}
+    </ul>
+
+    <div id="playerRole" class="role-box"></div>
+    <div id="countdown" class="countdown"></div>
+    <!-- Container for displaying the list of locations -->
+    <div id="locations_list"></div>
+
+    {% if session.get('player_name') == host %}
+      <div style="margin-top: 20px;">
+        <!-- Initially only Start Game is visible -->
+        <button id="startGameButton">Start Game</button>
+        <!-- Start Next Round button (disabled/hidden until first round starts) -->
+        <button id="nextRoundButton" style="margin-left: 10px; display:none;">Start Next Round</button>
+        <form action="/delete_room" method="post" style="display: inline;">
+          <button type="submit" style="margin-left: 10px;">Delete room</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    const socket = io();
+    const playerRole = document.getElementById('playerRole');
+    const startGameButton = document.getElementById('startGameButton');
+    const nextRoundButton = document.getElementById('nextRoundButton');
+    const playerList = document.getElementById('playerList');
+    const countdown = document.getElementById('countdown');
+    const locationsListContainer = document.getElementById('locations_list');
+    const playerName = "{{ session.get('player_name', '') }}";
+    
+    // Retrieve the waiting flag from the session (sent via Jinja)
+    const isWaiting = {{ session.get('waiting')|default(false)|tojson }};
+    
+    // If player is waiting, display waiting message initially.
+    if (isWaiting) {
+      playerRole.innerHTML = "Game already in progress. You are waiting for the next round to start.";
+    }
+    
+    // Flag to check if the round has started (for host controls)
+    let roundHasStarted = false;
+    
+    function startCountdown(callback) {
+      let count = 5;
+      countdown.innerHTML = `Game starting in ${count}...`;
+      const interval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdown.innerHTML = `Game starting in ${count}...`;
+        } else {
+          clearInterval(interval);
+          countdown.innerHTML = "Game Started!";
+          callback();
+        }
+      }, 1000);
+    }
+    
+    socket.on('game_started', (data) => {
+      startCountdown(() => {
+        const roles = data.roles;
+        // After a new round starts, update with the valid role info.
+        playerRole.innerHTML = roles[playerName] || "Game details not available.";
+        
+        // Update the locations list.
+        let html = '<h2>Locations</h2><ul>';
+        data.locations.forEach((loc) => {
+          html += `<li>${loc}</li>`;
+        });
+        html += '</ul>';
+        locationsListContainer.innerHTML = html;
+        
+        // For the host: if this is the first round, hide Start Game and show Start Next Round.
+        if (!roundHasStarted) {
+          roundHasStarted = true;
+          startGameButton.style.display = 'none';
+          nextRoundButton.style.display = 'inline-block';
+        }
+      });
+    });
+    
+    socket.on('update_players', (players) => {
+      playerList.innerHTML = '';
+      players.forEach(player => {
+        const li = document.createElement('li');
+        li.textContent = player;
+        playerList.appendChild(li);
+      });
+    });
+    
+    if (startGameButton) {
+      startGameButton.addEventListener('click', () => {
+        socket.emit('start_game');
+      });
+    }
+    
+    if (nextRoundButton) {
+      nextRoundButton.addEventListener('click', () => {
+        socket.emit('start_game');
+      });
+    }
+  </script>
+</body>
+</html>
