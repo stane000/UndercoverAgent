@@ -63,32 +63,11 @@ def start_game():
     socketio.emit('game_started', {"roles": roles, "locations": game_data['locations']})
     return redirect(url_for('home'))
 
-
-@socketio.on('reset')
-def reset_game():
-    """Resets the game to its initial state."""
-    # Clear game data
-    game_data['players'].clear()
-    game_data['spy'] = None
-    game_data.pop('location', None)
-    
-    # Clear session
-    session.clear()
-    
-    # Emit a reset event to update all clients
-    socketio.emit('game_reset')  # Notify all clients to reset the UI
-    socketio.emit('update_players', game_data['players'])  # Ensure player list is updated
-    
-    return redirect(url_for('home'))  # Optional: You can reload the page after reset
-
 @socketio.on('connect')
 def handle_connect():
     # Send the current list of players and reset the game state when a user reconnects
     emit('update_players', game_data['players'])
     #emit('game_reset')  # Ensure UI resets when a player reconnects
-
-
-
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)

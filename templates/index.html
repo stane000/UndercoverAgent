@@ -108,7 +108,6 @@
         {% endif %}
         
         <button id="nextRoundButton" style="display:none;">Start Next Round</button>
-        <!-- <button id="resetGameButton" style="display:none;">Reset Game</button> -->
     </div>
 
     <script>
@@ -116,7 +115,6 @@
         const playerRole = document.getElementById('playerRole');
         const startGameButton = document.getElementById('startGameButton');
         const nextRoundButton = document.getElementById('nextRoundButton');
-        const resetGameButton = document.getElementById('resetGameButton');
         const playerList = document.getElementById('playerList');
         const countdown = document.getElementById('countdown');
         const playerName = "{{ session.get('player_name', '') }}";
@@ -155,7 +153,6 @@
             // Hide the start button and show next round/reset buttons
             if (startGameButton) startGameButton.style.display = 'none';
             nextRoundButton.style.display = 'inline-block';
-            resetGameButton.style.display = 'inline-block';
         });
     });
         
@@ -168,18 +165,6 @@
             });
         });
 
-        socket.on('game_reset', () => {
-        playerList.innerHTML = '';  // Clear the player list
-        playerRole.innerHTML = '';  // Clear the player's role
-        countdown.innerHTML = '';   // Clear the countdown display
-        
-        // Show the Join Game button and hide other buttons
-        if (joinGameButton) joinGameButton.style.display = 'inline-block'; // Show "Join Game" button
-        if (startGameButton) startGameButton.style.display = 'none';       // Hide "Start Game" button
-        if (nextRoundButton) nextRoundButton.style.display = 'none';       // Hide "Next Round" button
-        if (resetGameButton) resetGameButton.style.display = 'none';       // Hide "Reset Game" button
-    });
-        
         if (startGameButton) {
             startGameButton.addEventListener('click', () => {
                 socket.emit('start_game');
@@ -190,10 +175,6 @@
             socket.emit('start_game');
             nextRoundButton.style.display = 'none';
         });
-        
-        resetGameButton.addEventListener('click', () => {
-            socket.emit('reset');
-                });
 
     </script>
 </body>
