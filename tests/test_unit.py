@@ -1,5 +1,11 @@
+import sys
+import os
 import unittest
+# Insert the parent directory of the tests folder into sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app import app, game_rooms
+
 
 class FlaskRoutesTestCase(unittest.TestCase):
     def setUp(self):
