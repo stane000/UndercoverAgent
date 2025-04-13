@@ -62,6 +62,14 @@
       color: #ff3333;
       text-shadow: 0 0 10px #ff3333;
     }
+    .winner-prompt {
+      margin-top: 20px;
+      padding: 20px;
+      background: #444;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #ff3333;
+      display: none; /* Initially hidden */
+    }
   </style>
 </head>
 <body>
@@ -69,15 +77,20 @@
   <div class="container">
     <h2>Players</h2>
     <ul id="playerList">
-      {% for player in players %}
-      <li>{{ player }}</li>
-      {% endfor %}
+      <!-- Players and scores will be dynamically updated here -->
     </ul>
 
     <div id="playerRole" class="role-box"></div>
     <div id="countdown" class="countdown"></div>
     <!-- Container for displaying the list of locations -->
     <div id="locations_list"></div>
+
+    <!-- Popup for choosing the winner -->
+    <div id="winnerPrompt" class="winner-prompt">
+      <h2>Who won the round?</h2>
+      <button id="agentWonButton">Agent Won</button>
+      <button id="agentLostButton">Agent Lost</button>
+    </div>
 
     {% if session.get('player_name') == host %}
       <div style="margin-top: 20px;">
@@ -89,36 +102,37 @@
           <button type="submit" style="margin-left: 10px;">Delete room</button>
         </form>
       </div>
-      {% else %}
-      <!-- Only non-host players can see the Leave Room button -->
-      <div style="margin-top: 20px;">
-        <form action="/leave_room" method="post">
-          <button type="submit">Leave Room</button>
-        </form>
-      </div>
     {% endif %}
+
+    <form action="/leave_room" method="post" style="margin-top: 20px;">
+      <button type="submit">Leave Room</button>
+    </form>
+  </div>
 
   <script>
     const socket = io();
     const playerRole = document.getElementById('playerRole');
     const startGameButton = document.getElementById('startGameButton');
     const nextRoundButton = document.getElementById('nextRoundButton');
+    const winnerPrompt = document.getElementById('winnerPrompt');
+    const agentWonButton = document.getElementById('agentWonButton');
+    const agentLostButton = document.getElementById('agentLostButton');
     const playerList = document.getElementById('playerList');
     const countdown = document.getElementById('countdown');
     const locationsListContainer = document.getElementById('locations_list');
     const playerName = "{{ session.get('player_name', '') }}";
-    
+
     // Retrieve the waiting flag from the session (sent via Jinja)
     const isWaiting = {{ session.get('waiting')|default(false)|tojson }};
-    
+
     // If player is waiting, display waiting message initially.
     if (isWaiting) {
       playerRole.innerHTML = "Game already in progress. You are waiting for the next round to start.";
     }
-    
+
     // Flag to check if the round has started (for host controls)
     let roundHasStarted = false;
-    
+
     function startCountdown(callback) {
       let count = 5;
       countdown.innerHTML = `Game starting in ${count}...`;
@@ -133,13 +147,13 @@
         }
       }, 1000);
     }
-    
+
     socket.on('game_started', (data) => {
       startCountdown(() => {
         const roles = data.roles;
         // After a new round starts, update with the valid role info.
         playerRole.innerHTML = roles[playerName] || "Game details not available.";
-        
+
         // Update the locations list.
         let html = '<h2>Locations</h2><ul>';
         data.locations.forEach((loc) => {
@@ -147,7 +161,7 @@
         });
         html += '</ul>';
         locationsListContainer.innerHTML = html;
-        
+
         // For the host: if this is the first round, hide Start Game and show Start Next Round.
         if (!roundHasStarted) {
           roundHasStarted = true;
@@ -156,14 +170,26 @@
         }
       });
     });
-    
-    socket.on('update_players', (players) => {
-      playerList.innerHTML = '';
+
+     // Update players and their scores dynamically
+     socket.on('update_players', ({ players, scores }) => {
+      playerList.innerHTML = ''; // Clear the player list
       players.forEach(player => {
         const li = document.createElement('li');
-        li.textContent = player;
+        li.textContent = `${player} (Score: ${scores[player] || 0})`; // Append player name and score
         playerList.appendChild(li);
       });
+
+    });
+
+    socket.on('update_locations', (data) => {
+      let html = '<h2>Locations</h2><ul>';
+      data.locations.forEach((loc) => {
+        html += `<li>${loc}</li>`;
+      });
+      html += '</ul>';
+      locationsListContainer.innerHTML = html;
+
     });
 
     socket.on('room_deleted', (data) => {
@@ -172,18 +198,38 @@
       // Once notified, redirect the player to the index page.
       window.location.href = '/';
     });
-    
+
     if (startGameButton) {
       startGameButton.addEventListener('click', () => {
-        socket.emit('start_game');
+        roundHasStarted = true; // Mark the round as started
+        socket.emit('start_game'); // Emit the start game event
+
+        // Transition to Next Round button
+        startGameButton.style.display = 'none';
+        nextRoundButton.style.display = 'inline-block';
       });
     }
-    
-    if (nextRoundButton) {
-      nextRoundButton.addEventListener('click', () => {
-        socket.emit('start_game');
-      });
-    }
+
+    nextRoundButton.addEventListener('click', () => {
+      if (roundHasStarted) {
+        winnerPrompt.style.display = 'block'; // Display the popup
+      }
+    });
+
+    // Placeholder logic for "Agent Won" and "Agent Lost" buttons
+    agentWonButton.addEventListener('click', () => {
+      alert('Agent Won!'); // Placeholder
+      winnerPrompt.style.display = 'none'; // Hide the popup
+      socket.emit('update_score', { agent_won: true });
+      socket.emit('start_game'); // Emit the start game event
+    });
+
+    agentLostButton.addEventListener('click', () => {
+      alert('Agent Lost!'); // Placeholder
+      winnerPrompt.style.display = 'none'; // Hide the popup
+      socket.emit('update_score', { agent_won: false });
+      socket.emit('start_game'); // Emit the start game event
+    });
   </script>
 </body>
 </html>

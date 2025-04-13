@@ -45,7 +45,8 @@ def host():
                     'location': None,
                     'locations': default_locations.copy(),
                     'roles': {},
-                    'round_started': False
+                    'round_started': False,
+                    'scores': {host_name: 0}  # Initialize the score for the host
                 }
             session['room'] = room_name
             session['player_name'] = host_name
@@ -53,6 +54,28 @@ def host():
             socketio.emit('update_rooms', game_rooms)
             return redirect(url_for('home'))
     return render_template("host.html")
+
+@socketio.on('update_score')
+def update_score(data):
+    room = session.get('room')
+    if room and room in game_rooms:
+        room_data = game_rooms[room]
+        agent_won = data.get('agent_won', False)  # Boolean indicating if the agent won
+
+        if agent_won:
+            # Add a point to the agent's score
+            room_data['scores'][room_data['spy']] += 1
+        else:
+            # Add a point to each non-agent player
+            for player in room_data['players']:
+                if player != room_data['spy']:
+                    room_data['scores'][player] += 1
+
+        #Emit updated scores to all players in the room
+        socketio.emit('update_players', {
+            'players': room_data['players'],
+            'scores': room_data['scores']
+        }, room=room)
 
 @app.route('/delete_room', methods=['POST'])
 def delete_room():
@@ -81,6 +104,7 @@ def join_room_route():
             room = game_rooms[room_name]
             if player_name not in room['players']:
                 room['players'].append(player_name)
+                room['scores'][player_name ] = 0  # Initialize score for the new player
             # If a round is already in progress, mark the player as waiting.
             if room.get('round_started', False):
                 session['waiting'] = True
@@ -98,10 +122,15 @@ def leave_room():
     if room and room in game_rooms:
         if player in game_rooms[room]['players']:
             game_rooms[room]['players'].remove(player)
+            game_rooms[room]['scores'].pop(player, None)
         if not game_rooms[room]['players']:
             del game_rooms[room]
         else:
-            socketio.emit('update_players', game_rooms[room]['players'], room=room)
+            socketio.emit('update_players', {
+                    'players': game_rooms[room]['players'],
+                    'scores': game_rooms[room]['scores']
+                }, room=room)
+        # If the player was the host, delete the room.
         # Broadcast updated room list—since a player left, it might change available rooms.
         socketio.emit('update_rooms', game_rooms)
     session.pop('room', None)
@@ -109,15 +138,19 @@ def leave_room():
     session.pop('waiting', None)
     return redirect(url_for('home'))
 
-
-# SocketIO event: when a client connects, add them to their room.
 @socketio.on('connect')
 def on_connect():
     room = session.get('room')
-    if room:
+    if room and room in game_rooms:
         join_room(room)
-        # Send the list of players for that room to all users in the room.
-        emit('update_players', game_rooms[room]['players'], room=room)
+        room_data = game_rooms[room]
+        #Emit the current state of the game
+        socketio.emit('update_players', {
+        'players': room_data['players'],
+        'scores': room_data['scores']
+        }, room=room)
+        socketio.emit('update_locations', {'locations': room_data['locations'], 'round_started': room_data['round_started']}, room=room)
+        
 
 @socketio.on('start_game')
 def start_game():
