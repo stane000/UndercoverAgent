@@ -103,11 +103,13 @@
         </form>
       </div>
     {% endif %}
-
-    <form action="/leave_room" method="post" style="margin-top: 20px;">
-      <button type="submit">Leave Room</button>
-    </form>
-  </div>
+    
+    {% if session.get('player_name') != host %}
+      <form action="/leave_room" method="post" style="margin-top: 20px;">
+        <button type="submit">Leave Room</button>
+      </form>
+    </div>
+    {% endif %}
 
   <script>
     const socket = io();

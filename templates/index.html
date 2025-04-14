@@ -53,13 +53,37 @@
             <h2 class="card-title">Host a Game</h2>
             <form action="/host" method="post">
               <div class="mb-3">
-                <input type="text" name="host" class="form-control" placeholder="Enter your name" required>
+                <label for="hostInput" class="form-label">Your Name</label>
+                <input
+                  type="text"
+                  id="hostInput"
+                  name="host"
+                  class="form-control"
+                  placeholder="Enter your name"
+                  minlength="4"
+                  maxlength="8"
+                  pattern="^\S{4,8}$"
+                  title="4 to 8 characters, no spaces"
+                  required
+                >
               </div>
               <div class="mb-3">
-                <input type="text" name="room" class="form-control" placeholder="Enter room name" required>
+                <label for="roomInput" class="form-label">Room Name</label>
+                <input
+                  type="text"
+                  id="roomInput"
+                  name="room"
+                  class="form-control"
+                  placeholder="Enter room name"
+                  minlength="4"
+                  maxlength="8"
+                  pattern="^\S{4,8}$"
+                  title="4 to 8 characters, no spaces"
+                  required
+                >
               </div>
               <button type="submit" class="btn btn-primary btn-custom w-100">Host Game</button>
-            </form>
+            </form>                      
           </div>
         </div>
       </div>
