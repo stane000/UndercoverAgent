@@ -44,11 +44,12 @@
   <h2>Join Game</h2>
   <div class="container">
     <form action="/join_room" method="post">
-      <input type="text" name="player" placeholder="Enter your name" required>
+      <input type="text" name="player" placeholder="Enter your name" required 
+          pattern="^[a-zA-Z0-9]{4,8}$" title="Name must be 4-8 characters long, with no spaces or special characters">
       <!-- Pre-fill the room name if passed as a query parameter -->
-      <input type="text" name="room"  required value="{{ request.args.get('room', '') }}">
+      <input type="text" name="room" required value="{{ request.args.get('room', '') }}">
       <button type="submit">Join Game</button>
-    </form>
+  </form>
   </div>
 </body>
 </html>

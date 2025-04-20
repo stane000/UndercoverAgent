@@ -16,7 +16,7 @@ default_locations = [
     "Airport", "Park", "Mall", "Train Station", "Library",
     "Movie Theater", "Gym", "Office", "Zoo", "Hotel", "Current location",
     "Jarun lake", "College", "Funeral", "Disco club", "Lunopark", "Mars",
-    "Bundek", "Prison"
+    "Bundek", "Prison", "Strip club"
 ]
 
 @app.route('/')
@@ -157,16 +157,18 @@ def start_game():
     room = session.get('room')
     if room and room in game_rooms:
         room_data = game_rooms[room]
+
         # Only the host is allowed to start a game or next round.
         if session.get('player_name') != room_data['host']:
             return
+        
         if len(room_data['players']) < 2:
             emit('error_message', "Not enough players to start the game!", room=room)
             return
         
         # (Optionally) Scale locations and choose random location/spy as before:
         room_data['locations'] = random.sample(default_locations,
-            min(len(default_locations), len(room_data['players']) * 5))
+            min(len(default_locations), (len(room_data['players']) -1) * 5))
         room_data['location'] = random.choice(room_data['locations'])
         room_data['spy'] = random.choice(room_data['players'])
         
