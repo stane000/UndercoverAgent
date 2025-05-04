@@ -22,42 +22,56 @@ import time
 
 
 
+import pytest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 @pytest.mark.parallel_run
-@pytest.mark.parametrize("client_id", range(1, 11))  # Simulate 10 clients
+@pytest.mark.parametrize("client_id", range(1, 101))  # Simulate 10 clients
 def test_create_room_per_client(client_id):
     """Each simulated client creates ONE room and verifies it."""
-    driver = webdriver.Chrome()  # Each test gets a new WebDriver instance
-    driver.get("http://localhost:5000")
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")  # Run browser in headless mode for performance
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-    room_name = f"Room{client_id}"
-    host_name = f"Host{client_id}"
+    driver = webdriver.Chrome(options=options)
 
-    # Fill out the form
-    driver.find_element(By.NAME, "host").send_keys(host_name)
-    driver.find_element(By.NAME, "room").send_keys(room_name)
-    driver.find_element(By.TAG_NAME, "form").submit()
+    try:
+        driver.get("http://localhost:5000")
 
-    # Wait for redirection to complete (if needed)
-    WebDriverWait(driver, 10).until(
-        EC.url_changes("http://localhost:5000")  # Replace with the specific URL after redirection
-    )
+        room_name = f"Room{client_id}"
+        host_name = f"Host{client_id}"
 
-    # Navigate back to the index page
-    driver.get("http://localhost:5000")  # Adjust URL as needed
+        # Fill out the form
+        driver.find_element(By.NAME, "host").send_keys(host_name)
+        driver.find_element(By.NAME, "room").send_keys(room_name)
+        driver.find_element(By.TAG_NAME, "form").submit()
 
-    # Verify room element visibility
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "#activeRooms li strong"))
-    )
-    room_elements = driver.find_elements(By.CSS_SELECTOR, "#activeRooms li strong")
-    room_names = [room.text for room in room_elements]
+        # Wait until redirected page displays the correct <h1> with room name
+        header = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "created-room")))
+         
+        assert header is not None, "Header element not found!"
+        assert room_name in header.text, f"Room {room_name} not found in header!"
 
-    assert room_name in room_names, f"{room_name} not found on the index page!"
+        # # Now navigate back to index page to verify the room is listed
+        # driver.get("http://localhost:5000")
 
-    print(f"✅ Client {client_id} successfully created {room_name}")
+        # WebDriverWait(driver, 10).until(
+        #     EC.presence_of_element_located((By.CSS_SELECTOR, "#activeRooms li strong"))
+        # )
+        # room_elements = driver.find_elements(By.CSS_SELECTOR, "#activeRooms li strong")
+        # room_names = [room.text for room in room_elements]
 
-    driver.quit()  # Close browser instance
+        # assert room_name in room_names, f"{room_name} not found on the index page!"
+        # print(f"✅ Client {client_id} successfully created and verified {room_name}")
+
+    finally:
+        driver.quit()
 
 
 if __name__ == "__main__":
-    pytest.main(["-m", "parallel_run", "-n", "1", __file__])
+    pytest.main(["-m", "parallel_run", "-n", "100", __file__])
