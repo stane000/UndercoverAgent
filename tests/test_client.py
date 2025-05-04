@@ -29,7 +29,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 @pytest.mark.parallel_run
-@pytest.mark.parametrize("client_id", range(1, 101))  # Simulate 10 clients
+@pytest.mark.parametrize("client_id", range(1, 11))  # Simulate 10 clients
 def test_create_room_per_client(client_id):
     """Each simulated client creates ONE room and verifies it."""
     options = webdriver.ChromeOptions()
@@ -74,4 +74,4 @@ def test_create_room_per_client(client_id):
 
 
 if __name__ == "__main__":
-    pytest.main(["-m", "parallel_run", "-n", "100", __file__])
+    pytest.main(["-m", "parallel_run", "-n", "10", __file__])
