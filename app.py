@@ -63,13 +63,15 @@ def update_score(data):
         agent_won = data.get('agent_won', False)  # Boolean indicating if the agent won
 
         if agent_won:
-            # Add a point to the agent's score
-            room_data['scores'][room_data['spy']] += 1
-        else:
-            # Add a point to each non-agent player
-            for player in room_data['players']:
-                if player != room_data['spy']:
-                    room_data['scores'][player] += 1
+
+            if agent_won:
+                # Add a point to the agent's score
+                room_data['scores'][room_data['spy']] += 1
+            else:
+                # Add a point to each non-agent player
+                for player in room_data['players']:
+                    if player != room_data['spy']:
+                        room_data['scores'][player] += 1
 
         #Emit updated scores to all players in the room
         socketio.emit('update_players', {

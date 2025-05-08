@@ -90,6 +90,7 @@
       <h2>Who won the round?</h2>
       <button id="agentWonButton">Agent Won</button>
       <button id="agentLostButton">Agent Lost</button>
+      <button id="nobody">Nobody</button>
     </div>
 
     {% if session.get('player_name') == host %}
@@ -119,6 +120,7 @@
     const winnerPrompt = document.getElementById('winnerPrompt');
     const agentWonButton = document.getElementById('agentWonButton');
     const agentLostButton = document.getElementById('agentLostButton');
+    const nobodyButton = document.getElementById('nobody');
     const playerList = document.getElementById('playerList');
     const countdown = document.getElementById('countdown');
     const locationsListContainer = document.getElementById('locations_list');
@@ -230,6 +232,13 @@
       alert('Agent Lost!'); // Placeholder
       winnerPrompt.style.display = 'none'; // Hide the popup
       socket.emit('update_score', { agent_won: false });
+      socket.emit('start_game'); // Emit the start game event
+    });
+
+    nobodyButton.addEventListener('click', () => {
+      alert('Nobody won!'); // Placeholder
+      winnerPrompt.style.display = 'none'; // Hide the popup
+      socket.emit('update_score', { agent_won: null });
       socket.emit('start_game'); // Emit the start game event
     });
   </script>
