@@ -175,6 +175,12 @@
       });
     });
 
+    socket.on('update_roles', (data) => {
+      const roles = data.roles;
+        // After a new round starts, update with the valid role info.
+        playerRole.innerHTML = roles[playerName] || "Game details not available.";
+    });
+
      // Update players and their scores dynamically
      socket.on('update_players', ({ players, scores }) => {
       playerList.innerHTML = ''; // Clear the player list

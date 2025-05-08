@@ -62,7 +62,7 @@ def update_score(data):
         room_data = game_rooms[room]
         agent_won = data.get('agent_won', False)  # Boolean indicating if the agent won
 
-        if agent_won:
+        if agent_won is not None:
 
             if agent_won:
                 # Add a point to the agent's score
@@ -151,7 +151,8 @@ def on_connect():
         'players': room_data['players'],
         'scores': room_data['scores']
         }, room=room)
-        socketio.emit('update_locations', {'locations': room_data['locations'], 'round_started': room_data['round_started']}, room=room)
+        emit('update_locations', {'locations': room_data['locations'], 'round_started': room_data['round_started']}, room=room)
+        emit('update_roles', {'roles': room_data['roles']}, room=room)
         
 
 @socketio.on('start_game')
