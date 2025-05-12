@@ -199,7 +199,14 @@
       });
       html += '</ul>';
       locationsListContainer.innerHTML = html;
+    });
 
+    socket.on("update_start_button", (data) => {
+        if (data.round_started) {
+        roundHasStarted = true;
+        startGameButton.style.display = 'none';
+        nextRoundButton.style.display = 'inline-block';
+      }
     });
 
     socket.on('room_deleted', (data) => {

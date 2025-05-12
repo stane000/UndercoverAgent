@@ -147,14 +147,12 @@ def on_connect():
         join_room(room)
         room_data = game_rooms[room]
         #Emit the current state of the game
-        socketio.emit('update_players', {
-        'players': room_data['players'],
-        'scores': room_data['scores']
-        }, room=room)
-        emit('update_locations', {'locations': room_data['locations'], 'round_started': room_data['round_started']}, room=room)
+        emit('update_players', {'players': room_data['players'],'scores': room_data['scores']}, room=room)
+        emit('update_locations', {'locations': room_data['locations']}, room=room)
         emit('update_roles', {'roles': room_data['roles']}, room=room)
+        if session.get('player_name') == game_rooms[room]['host']:
+            emit("update_start_button", {'round_started': room_data['round_started']}, room=room)
         
-
 @socketio.on('start_game')
 def start_game():
     room = session.get('room')
