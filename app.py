@@ -159,6 +159,10 @@ def start_game():
     if room and room in game_rooms:
         room_data = game_rooms[room]
 
+        if len(room_data['players']) < 3:
+            emit("need_3_players")
+            return
+    
         # Only the host is allowed to start a game or next round.
         if session.get('player_name') != room_data['host']:
             return
