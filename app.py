@@ -11,13 +11,17 @@ socketio = SocketIO(app)
 game_rooms = {}
 
 # Default set of locations
-default_locations = [
-    "School", "Casino", "Beach", "Restaurant", "Hospital",
-    "Airport", "Park", "Mall", "Train Station", "Library",
-    "Movie Theater", "Gym", "Office", "Zoo", "Hotel", "Current location",
-    "Jarun lake", "College", "Funeral", "Disco club", "Lunopark", "Mars",
-    "Bundek", "Prison", "Strip club"
-]
+# default_locations = [
+#     "School", "Casino", "Beach", "Restaurant", "Hospital",
+#     "Airport", "Park", "Mall", "Train Station", "Library",
+#     "Movie Theater", "Gym", "Office", "Zoo", "Hotel", "Current location",
+#     "Jarun lake", "College", "Funeral", "Disco club", "Lunopark", "Mars",
+#     "Bundek", "Prison", "Strip club"
+# ]
+
+default_locations = ["Hrvatska", "Srbija", "BIH", "Austrija", "Italija", "Slovenia", "Spanjolska", "Njemačna", "Vatikan", "Rusija",
+                      "Turska", "Francuska", "Belgija", "Nizozemska", "Danska", "Norveska", "Svedska", "Finska", "Poljska",
+                      "Ceska", "Velika Britanija", "Mađarska", "Rumunija", "Maroko", "Grčka", "Albanija", "Crna Gora", "Makedonija",] 
 
 @app.route('/')
 def home():
