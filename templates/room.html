@@ -209,6 +209,14 @@
       }
     });
 
+    socket.on("need_3_players", () => {
+        alert('Minimum 3 players required!'); // Placeholder
+        roundHasStarted = false;
+        startGameButton.style.display = 'inline-block';
+        nextRoundButton.style.display = 'none';
+   
+    });
+
     socket.on('room_deleted', (data) => {
       // You may display a message to the user.
       alert(data.message);
